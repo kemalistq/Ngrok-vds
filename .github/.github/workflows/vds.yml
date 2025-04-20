@@ -1,0 +1,35 @@
+name: Free VDS with Ngrok
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Başlangıç - Ngrok kurulumu ve SSH kurulum
+        run: |
+          sudo apt update
+          sudo apt install unzip wget curl openssh-server -y
+          
+          # Ngrok indirilip kuruldu
+          wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
+          unzip ngrok-stable-linux-amd64.zip
+          chmod +x ngrok
+          
+          # NGROK_AUTH_TOKEN'i buraya ekliyoruz
+          ./ngrok authtoken 2vyJ88unP8p2F9TPg2vYuAHMRJB_2mJ8GXkaLKHFFWxTNnM6f
+          
+          # SSH servisi kurulur
+          sudo service ssh start
+          echo "root:123456" | sudo chpasswd
+          sudo service ssh restart
+          
+          # SSH portunun tünellenmesi için ngrok
+          ./ngrok tcp 22 &
+
+      - name: Ngrok Tünel Bilgisi
+        run: |
+          sleep 10
+          curl --silent --show-error http://127.0.0.1:4040/api/tunnels
